@@ -29,7 +29,7 @@ module.exports = function (router) {
                 const total = await Task.countDocuments(where);
                 return res.status(200).json({ message: 'OK', data: total })
             }
-            
+
             const tasks = await Task
                 .find(where)
                 .sort(sort)
@@ -108,8 +108,19 @@ module.exports = function (router) {
 
     // Get one task by id.
     taskRoute.get(async (req, res) => {
+
+        // Reject invalid JSONs.
+        let select;
         try {
-            const task = await Task.findById(req.params.id);
+            select = JSON.parse(req.query.select || '{}');
+        } catch (err) {
+            return res.status(400).json({
+                message: 'Query parameters must be valid JSON', data: null
+            });
+        }
+
+        try {
+            const task = await Task.findById(req.params.id).select(select);
             if (!task) {
                 return res.status(404).json({
                     message: 'Task not found', data: null
