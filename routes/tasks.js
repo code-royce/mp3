@@ -1,4 +1,5 @@
 const Task = require('../models/task.js');
+const User = require('../models/user.js');
 
 module.exports = function (router) {
 
@@ -37,7 +38,37 @@ module.exports = function (router) {
             });
         }
 
+         // Reject an assignedUser with an invalid id.
+        if (task.assignedUser !== '' && !/^[0-9a-fA-F]{24}$/.test(task.assignedUser)) {
+            return res.status(400).json({
+                message: 'assignedUser is not a valid user id', data: null
+            });
+        }
+
         try {
+            if (task.assignedUser === '') {
+                // An unassigned task has no user name.
+                task.assignedUserName = 'unassigned';
+            } else {
+                // Reject an assignedUser that doesn't exist.
+                const user = await User.findById(task.assignedUser);
+                if (!user) {
+                    return res.status(404).json({
+                        message: 'Assigned user not found', data: null
+                    });
+                }
+
+                // Fill in the user's name if omitted.
+                // Reject one that doesn't match.
+                if (req.body.assignedUserName === undefined) {
+                    task.assignedUserName = user.name;
+                } else if (task.assignedUserName !== user.name) {
+                    return res.status(400).json({
+                        message: 'assignedUserName does not match the assigned user', data: null
+                    });
+                }
+            }
+
             await task.save();
             res.status(201).json({ message: 'Task created', data: task });
         } catch (err) {
