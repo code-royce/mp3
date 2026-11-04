@@ -1,4 +1,5 @@
 const User = require('../models/user.js');
+const Task = require('../models/task.js');
 
 module.exports = function (router) {
 
@@ -110,7 +111,6 @@ module.exports = function (router) {
     });
 
     // Delete one user by id.
-    // TODO: unassign this user's tasks once the tasks routes exist.
     userRoute.delete(async (req, res) => {
         try {
             const user = await User.findByIdAndDelete(req.params.id);
@@ -119,6 +119,12 @@ module.exports = function (router) {
                      message: 'User not found', data: null
                 });
             }
+
+            // Unassign all of the user's tasks.
+            await Task.updateMany(
+                { assignedUser: user.id },
+                { assignedUser: '', assignedUserName: 'unassigned' }
+            );
             res.status(204).end();
         } catch (err) {
             // A malformed id can't belong to any user.
