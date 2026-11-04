@@ -59,7 +59,7 @@ module.exports = function (router) {
                 }
 
                 // Fill in the user's name if omitted.
-                // Reject one that doesn't match.
+                // Reject names that don't match the assigned user.
                 if (req.body.assignedUserName === undefined) {
                     task.assignedUserName = user.name;
                 } else if (task.assignedUserName !== user.name) {
@@ -72,6 +72,53 @@ module.exports = function (router) {
             await task.save();
             res.status(201).json({ message: 'Task created', data: task });
         } catch (err) {
+            res.status(500).json({ message: 'Server error', data: null });
+        }
+    });
+
+
+    const taskRoute = router.route('/tasks/:id');
+
+    // Get one task by id.
+    taskRoute.get(async (req, res) => {
+        try {
+            const task = await Task.findById(req.params.id);
+            if (!task) {
+                return res.status(404).json({
+                    message: 'Task not found', data: null
+                });
+            }
+            res.status(200).json({ message: 'OK', data: task });
+        } catch (err) {
+            // A malformed id can't belong to any task.
+            if (err.name === 'CastError') {
+                return res.status(404).json({
+                    message: 'Task not found', data: null
+                });
+            }
+            res.status(500).json({ message: 'Server error', data: null });
+        }
+    });
+
+
+    // Delete one task by id.
+    // TODO: unassign this task's tasks once the tasks routes exist.
+    taskRoute.delete(async (req, res) => {
+        try {
+            const task = await Task.findByIdAndDelete(req.params.id);
+            if (!task) {
+                return res.status(404).json({
+                     message: 'Task not found', data: null
+                });
+            }
+            res.status(204).end();
+        } catch (err) {
+            // A malformed id can't belong to any task.
+            if (err.name === 'CastError') {
+                return res.status(404).json({
+                    message: 'Task not found', data: null
+                });
+            }
             res.status(500).json({ message: 'Server error', data: null });
         }
     });

@@ -32,7 +32,7 @@ module.exports = function (router) {
         }
 
         try {
-            // Reject an email another user already has.
+            // Reject any existing email.
             const sameEmail = await User.findOne({ email: user.email });
             if (sameEmail) {
                 return res.status(400).json({
