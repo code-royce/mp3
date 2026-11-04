@@ -47,7 +47,8 @@ module.exports = function (router) {
 
         const user = new User({
             name: req.body.name,
-            email: req.body.email
+            email: req.body.email,
+            pendingTasks: req.body.pendingTasks
         });
 
         // Reject a missing name or email.
@@ -59,6 +60,22 @@ module.exports = function (router) {
             });
         }
 
+        // Enforce list type for pendingTasks.
+        if (req.body.pendingTasks !== undefined && !Array.isArray(req.body.pendingTasks)) {
+            return res.status(400).json({
+                message: 'pendingTasks must be a list of task ids', data: null
+            });
+        }
+
+        // Reject pendingTasks with invalid ids.
+        for (const id of user.pendingTasks) {
+            if (!/^[0-9a-fA-F]{24}$/.test(id)) {
+                return res.status(400).json({
+                    message: 'pendingTasks has an invalid task id', data: null
+                });
+            }
+        }
+
         try {
             // Reject any existing email.
             const sameEmail = await User.findOne({ email: user.email });
@@ -68,7 +85,34 @@ module.exports = function (router) {
                 });
             }
 
+            // Reject task ids that don't exist.
+            const tasks = await Task.find({ _id: { $in: user.pendingTasks } });
+            if (tasks.length !== user.pendingTasks.length) {
+                return res.status(404).json({
+                    message: 'A task in pendingTasks was not found', data: null
+                });
+            }
+
+            // Reject completed tasks.
+            if (tasks.some(task => task.completed)) {
+                return res.status(400).json({
+                    message: 'pendingTasks cannot include a completed task', data: null
+                });
+            }
+
+            // Take the tasks away from any other user.
+            await User.updateMany(
+                { pendingTasks: { $in: user.pendingTasks } },
+                { $pull: { pendingTasks: { $in: user.pendingTasks } } }
+            );
+
             await user.save();
+
+            // Assign the tasks to this user.
+            await Task.updateMany(
+                { _id: { $in: user.pendingTasks } },
+                { assignedUser: user.id, assignedUserName: user.name }
+            );
             res.status(201).json({ message: 'User created', data: user });
         } catch (err) {
             res.status(500).json({ message: 'Server error', data: null });
