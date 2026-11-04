@@ -5,10 +5,37 @@ module.exports = function (router) {
 
     const tasksRoute = router.route('/tasks');
 
-    // List tasks, at most 100 by default.
+    // List tasks, max 100 by default.
     tasksRoute.get(async (req, res) => {
+
+        // Reject invalid JSONs.
+        let where, sort, select, skip, limit, count;
         try {
-            const tasks = await Task.find().limit(100);
+            where = JSON.parse(req.query.where || '{}');
+            sort = JSON.parse(req.query.sort || '{}');
+            select = JSON.parse(req.query.select || '{}');
+            skip = JSON.parse(req.query.skip || '0');
+            limit = JSON.parse(req.query.limit || '100');
+            count = JSON.parse(req.query.count || 'false')
+        } catch (err) {
+            return res.status(400).json({
+                message: 'Query parameters must be valid JSON', data: null
+            });
+        }
+
+        try {
+            // Return number of matching tasks.
+            if (count) {
+                const total = await Task.countDocuments(where);
+                return res.status(200).json({ message: 'OK', data: total })
+            }
+            
+            const tasks = await Task
+                .find(where)
+                .sort(sort)
+                .select(select)
+                .skip(skip)
+                .limit(limit);
             res.status(200).json({ message: 'OK', data: tasks });
         } catch (err) {
             res.status(500).json({ message: 'Server error', data: null });
