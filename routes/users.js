@@ -47,5 +47,51 @@ module.exports = function (router) {
         }
     });
 
+
+    const userRoute = router.route('/users/:id');
+
+    // Get one user by id.
+    userRoute.get(async (req, res) => {
+        try {
+            const user = await User.findById(req.params.id);
+            if (!user) {
+                return res.status(404).json({
+                    message: 'User not found', data: null
+                });
+            }
+            res.status(200).json({ message: 'OK', data: user });
+        } catch (err) {
+            // A malformed id can't belong to any user.
+            if (err.name === 'CastError') {
+                return res.status(404).json({
+                    message: 'User not found', data: null
+                });
+            }
+            res.status(500).json({ message: 'Server error', data: null });
+        }
+    });
+
+    // Delete one user by id.
+    // TODO: unassign this user's tasks once the tasks routes exist.
+    userRoute.delete(async (req, res) => {
+        try {
+            const user = await User.findByIdAndDelete(req.params.id);
+            if (!user) {
+                return res.status(404).json({
+                     message: 'User not found', data: null
+                });
+            }
+            res.status(200).json({ message: 'User deleted', data: user });
+        } catch (err) {
+            // A malformed id can't belong to any user.
+            if (err.name === 'CastError') {
+                return res.status(404).json({
+                    message: 'User not found', data: null
+                });
+            }
+            res.status(500).json({ message: 'Server error', data: null });
+        }
+    });
+
     return router;
 };
