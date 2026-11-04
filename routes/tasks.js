@@ -44,7 +44,6 @@ module.exports = function (router) {
 
 
     // Create a task from the request body.
-    // TODO: add the task to its user's pendingTasks
     tasksRoute.post(async (req, res) => {
 
         const task = new Task({
@@ -156,6 +155,14 @@ module.exports = function (router) {
                 return res.status(404).json({
                      message: 'Task not found', data: null
                 });
+            }
+
+            // Remove task from its user's pendingTasks.
+            if (task.assignedUser !== '') {
+                await User.updateOne(
+                    { _id: task.assignedUser },
+                    { $pull: { pendingTasks: task.id } }
+                );
             }
             res.status(204).end();
         } catch (err) {
