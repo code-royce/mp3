@@ -81,7 +81,7 @@ module.exports = function (router) {
                      message: 'User not found', data: null
                 });
             }
-            res.status(200).json({ message: 'User deleted', data: user });
+            res.status(204).end();
         } catch (err) {
             // A malformed id can't belong to any user.
             if (err.name === 'CastError') {
