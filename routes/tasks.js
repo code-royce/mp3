@@ -97,6 +97,14 @@ module.exports = function (router) {
             }
 
             await task.save();
+
+            // Add incomplete tasks to its user's pendingTasks.
+            if (task.assignedUser !== '' && !task.completed) {
+                await User.updateOne(
+                    { _id: task.assignedUser },
+                    { $push: { pendingTasks: task.id } }
+                );
+            }
             res.status(201).json({ message: 'Task created', data: task });
         } catch (err) {
             res.status(500).json({ message: 'Server error', data: null });
