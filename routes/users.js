@@ -27,7 +27,7 @@ module.exports = function (router) {
             await user.validate();
         } catch (err) {
             return res.status(400).json({
-                message: 'A user needs a name and an email', data: null
+                message: 'A user needs a name and a valid email', data: null
             });
         }
 
