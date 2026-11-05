@@ -27,7 +27,7 @@ module.exports = function (router) {
             // Return number of matching tasks.
             if (count) {
                 const total = await Task.countDocuments(where);
-                return res.status(200).json({ message: 'OK', data: total })
+                return res.status(200).json({ message: 'Engage.', data: total })
             }
 
             const tasks = await Task
@@ -36,7 +36,7 @@ module.exports = function (router) {
                 .select(select)
                 .skip(skip)
                 .limit(limit);
-            res.status(200).json({ message: 'OK', data: tasks });
+            res.status(200).json({ message: 'Engage.', data: tasks });
         } catch (err) {
             res.status(500).json({ message: 'Server error', data: null });
         }
@@ -104,7 +104,7 @@ module.exports = function (router) {
                     { $push: { pendingTasks: task.id } }
                 );
             }
-            res.status(201).json({ message: 'Task created', data: task });
+            res.status(201).json({ message: 'Task created. Make it so.', data: task });
         } catch (err) {
             res.status(500).json({ message: 'Server error', data: null });
         }
@@ -133,7 +133,7 @@ module.exports = function (router) {
                     message: 'Task not found', data: null
                 });
             }
-            res.status(200).json({ message: 'OK', data: task });
+            res.status(200).json({ message: 'Engage.', data: task });
         } catch (err) {
             // Check for malformed ids.
             if (err.name === 'CastError') {
@@ -237,7 +237,7 @@ module.exports = function (router) {
                     { $push: { pendingTasks: task.id } }
                 );
             }
-            res.status(200).json({ message: 'OK', data: task });
+            res.status(200).json({ message: 'Engage.', data: task });
         } catch (err) {
             res.status(500).json({ message: 'Server error', data: null });
         }

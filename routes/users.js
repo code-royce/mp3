@@ -27,7 +27,7 @@ module.exports = function (router) {
             // Return the number of matching users.
             if (count) {
                 const total = await User.countDocuments(where);
-                return res.status(200).json({ message: 'OK', data: total });
+                return res.status(200).json({ message: 'Engage.', data: total });
             }
 
             const users = await User
@@ -36,7 +36,7 @@ module.exports = function (router) {
                 .select(select)
                 .skip(skip)
                 .limit(limit);
-            res.status(200).json({ message: 'OK', data: users });
+            res.status(200).json({ message: 'Engage.', data: users });
         } catch (err) {
             res.status(500).json({ message: 'Server error', data: null });
         }
@@ -114,7 +114,7 @@ module.exports = function (router) {
                 { _id: { $in: user.pendingTasks } },
                 { assignedUser: user.id, assignedUserName: user.name }
             );
-            res.status(201).json({ message: 'User created', data: user });
+            res.status(201).json({ message: 'User created. Welcome aboard.', data: user });
         } catch (err) {
             res.status(500).json({ message: 'Server error', data: null });
         }
@@ -143,7 +143,7 @@ module.exports = function (router) {
                     message: 'User not found', data: null
                 });
             }
-            res.status(200).json({ message: 'OK', data: user });
+            res.status(200).json({ message: 'Engage.', data: user });
         } catch (err) {
             // Check for malformed ids.
             if (err.name === 'CastError') {
@@ -261,7 +261,7 @@ module.exports = function (router) {
                 { assignedUser: user.id },
                 { assignedUserName: user.name }
             );
-            res.status(200).json({ message: 'OK', data: user });
+            res.status(200).json({ message: 'Engage.', data: user });
         } catch (err) {
             res.status(500).json({ message: 'Server error', data: null });
         }
